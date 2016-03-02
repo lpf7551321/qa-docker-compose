@@ -1,0 +1,51 @@
+datanode:
+  image: 172.16.1.41:5000/jenkins/hdfs:latest
+  command: bootstrap.sh datanode
+  privileged: true
+  hostname: datanode.test.transwarp.local
+  dns: skydns
+  dns_search: test.transwarp.local
+  volumes:
+    - /tmp/sockerdir:/var/run/hadoop-common
+  environment:
+    - SKYDNS_PATH=http://etcd:4001/v2/keys/skydns
+    - HDFS_HA_NAMENODE_SERVICE=namenode
+    - HDFS_NAMENODE_STATUS_URL=namenode:50070/startupProgress
+    - DATA_DIRS=/var/transwarp/data
+    - HADOOP_SECURITY_AUTHENTICATION=simple
+    - KRB_ENABLE=false
+  volumes:
+    - .:/external
+
+namenode:
+  image: 172.16.1.41:5000/jenkins/hdfs:latest
+  command: bootstrap.sh namenode
+  privileged: true
+  hostname: namenode.test.transwarp.local
+  dns: skydns
+  dns_search: test.transwarp.local
+  environment:
+    - SKYDNS_PATH=http://etcd:4001/v2/keys/skydns
+    - CLUSTER_ID=transwarp
+    - HDFS_HA_NAMENODE_SERVICE=namenode
+    - DFS_REPLICATION=3
+    - TRANSWARP_LICENSE_ZOOKEEPER_QUORUM=172.16.1.41:2181
+    - HADOOP_SECURITY_AUTHENTICATION=simple
+    - KRB_ENABLE=false
+  volumes:
+    - .:/external
+
+zookeeper:
+  image: 172.16.1.41:5000/jenkins/zookeeper:latest
+  command: bootstrap.sh zookeeper
+  privileged: true
+  hostname: zookeeper.test.transwarp.local
+  dns: skydns
+  dns_search: test.transwarp.local
+  environment:
+    - SKYDNS_PATH=http://etcd:4001/v2/keys/skydns
+    - MYID=0
+    - SERVER_SPEC=zookeeper
+    - KRB_ENABLE=false
+  volumes:
+    - .:/external

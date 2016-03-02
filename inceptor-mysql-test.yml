@@ -1,0 +1,32 @@
+inceptormysqltest:
+  image: 172.16.1.41:5000/jenkins/mysql-test:testing-latest
+  command: bootstrap.sh
+  external_links:
+    - dockercompose_skydns_1:skydns
+    - dockercompose_etcd_1:etcd
+  hostname: mysqltest.test.transwarp.local
+  dns: skydns
+  dns_search: test.transwarp.local
+  environment:
+    - SKYDNS_PATH=http://etcd:4001/v2/keys/skydns
+    - TRANSWARP_LICENSE_ZOOKEEPER_QUORUM=172.16.1.41:2181
+    - TRANSWARP_ZOOKEEPER_QUORUM=zookeeper
+    - HADOOP_CONF_DIR=/etc/hadoop_ha/conf
+    - HDFS_HA_NAMENODE_SERVICE=namenode
+    - INCEPTOR_SERVER=inceptor.test.transwarp.local
+    - HREGION_INDEX_PATH=hdfs://service/hyperbase1_hregionindex
+    - HBASE_ROOTDIR=hdfs://service/hyperbase1
+    - HBASE_ZOOKEEPER_ZNODE_PARENT=/hyperbase1
+    - HIVE_METASTORE_SERVER=metastore
+    - HIVE_EXEC_SCRATCHDIR=hdfs://service/inceptor/tmp/hive
+    - HIVE_METASTORE_WAREHOUSE_DIR=hdfs://service/inceptor1/user/hive/warehouse
+    - HADOOP_SECURITY_AUTHENTICATION=kerberos
+    - KRB_REALM=TDH
+# non kerberos
+#    - HADOOP_SECURITY_AUTHENTICATION=simple
+#    - KRB_ENABLE=false
+
+# kerberos
+    - KRB_ENABLE=true
+    - KRB_ADMIN_SERVER=kerberos
+

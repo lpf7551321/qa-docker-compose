@@ -1,0 +1,23 @@
+player:
+  image: 172.16.1.41:5000/wehu/test_player:latest
+  external_links:
+    - qadockercompose_skydns_1:skydns
+    - qadockercompose_etcd_1:etcd
+  dns:
+    - skydns
+  dns_search:
+    - test.transwarp.local
+  environment:
+    - TRANSWARP_ZOOKEEPER_QUORUM=zookeeper
+    - HDFS_HA_NAMENODE_SERVICE=namenode
+    - DFS_REPLICATION=1
+    - INCEPTOR_SERVER=inceptor.test.transwarp.local
+    - HBASE_ZOOKEEPER_ZNODE_PARENT=/hyperbase1
+    - HIVE_METASTORE_SERVER=metastore
+    - HIVE_EXEC_SCRATCHDIR=hdfs://service/user/hive/inceptor1/tmp/hive
+    - HIVE_METASTORE_WAREHOUSE_DIR=hdfs://service/user/hive/inceptor1/user/hive/warehouse
+    # flags for non kerberos mode
+    - KRB_ENABLE=false
+    - HADOOP_SECURITY_AUTHENTICATION=simple
+    - HIVE_SERVER2_AUTHENTICATION=NONE
+    - HIVE_SECURITY_AUTHENTICATOR_MANAGER=org.apache.hadoop.hive.ql.security.HadoopDefaultAuthenticator

@@ -1,0 +1,47 @@
+hbaseregionserver:
+  image: 172.16.1.41:5000/jenkins/hbase:latest
+  command: bootstrap.sh regionserver
+  hostname: hbaseregionserver.test.transwarp.local
+  dns: skydns
+  dns_search: test.transwarp.local
+  volumes:
+    - /tmp/sockerdir:/var/run/hadoop-common
+  environment:
+    - SKYDNS_PATH=http://etcd:4001/v2/keys/skydns
+    - TRANSWARP_ZOOKEEPER_QUORUM=zookeeper
+    - HDFS_HA_NAMENODE_SERVICE=namenode
+    - HBASE_MASTER_STATUS=http://hbasemaster:60010/jmx
+    - HBASE_REGIONSERVER_INFO_BINDADDRESS=0.0.0.0
+    - HBASE_ROOTDIR=hdfs://service/user/hbase/hyperbase1
+    - HBASE_ZOOKEEPER_ZNODE_PARENT=/hyperbase1
+    - HBASE_SSERVICE_LOCAL_CACHEDIR=/var/transwarp/data/sservice
+    - HREGION_INDEX_PATH=hdfs://service/user/hbase/hyperbase1_hregionindex
+    - NAMENODE_STATUS=namenode:50070/startupProgress
+    - HADOOP_SECURITY_AUTHENTICATION=simple
+    - KRB_ENABLE=false
+  volumes:
+    - .:/external
+
+hbasemaster:
+  image: 172.16.1.41:5000/jenkins/hbase:latest
+  command: bootstrap.sh master
+  privileged: true
+  hostname: hbasemaster.test.transwarp.local
+  dns: skydns
+  dns_search: test.transwarp.local
+  volumes:
+    - /tmp/sockerdir:/var/run/hadoop-common
+  environment:
+    - SKYDNS_PATH=http://etcd:4001/v2/keys/skydns
+    - HDFS_HA_NAMENODE_SERVICE=namenode
+    - TRANSWARP_ZOOKEEPER_QUORUM=zookeeper
+    - HBASE_ZOOKEEPER_ZNODE_PARENT=/hyperbase1
+    - HBASE_ROOTDIR=hdfs://namenode:8020/hyperbase1
+    - HBASE_SSERVICE_LOCAL_CACHEDIR=/var/transwarp/data/sservice
+    - HBASE_ROOTDIR=hdfs://service/user/hbase/hyperbase1
+    - HREGION_INDEX_PATH=hdfs://service/user/hbase/hyperbase1_hregionindex
+    - NAMENODE_STATUS=namenode:50070/startupProgress
+    - HADOOP_SECURITY_AUTHENTICATION=simple
+    - KRB_ENABLE=false
+  volumes:
+    - .:/external

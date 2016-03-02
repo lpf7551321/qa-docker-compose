@@ -1,0 +1,59 @@
+nodemanager:
+  image: 172.16.1.41:5000/jenkins/yarn:latest
+  command: bootstrap.sh nodemanager
+  privileged: true
+  hostname: nodemanager.test.transwarp.local
+  dns: skydns
+  dns_search: test.transwarp.local
+  volumes:
+    - /tmp/sockerdir:/var/run/hadoop-common
+  environment:
+    - SKYDNS_PATH=http://etcd:4001/v2/keys/skydns
+    - HDFS_HA_NAMENODE_SERVICE=namenode
+    - NODEMANAGER_RESOURCE_CPU_VCORES=32
+    - NODEMANAGER_RESOURCE_MEMORY_MB=32768
+    - YARN_RESOURCEMANAGER_ADDRRESS=resourcemanager
+    - HADOOP_SECURITY_AUTHENTICATION=simple
+    - KRB_ENABLE=false
+  volumes:
+    - .:/external
+
+historyserver:
+  image: 172.16.1.41:5000/jenkins/yarn:latest
+  command: bootstrap.sh historyserver
+  privileged: true
+  hostname: historyserver.test.transwarp.local
+  dns: skydns
+  dns_search: test.transwarp.local
+  volumes:
+    - /tmp/sockerdir:/var/run/hadoop-common
+  environment:
+    - SKYDNS_PATH=http://etcd:4001/v2/keys/skydns
+    - HDFS_HA_NAMENODE_SERVICE=namenode
+    - HDFS_NAMENODE_STATUS_URL=namenode:50070/startupProgress
+    - MAPREDUCED_JOBHISTORY_ADDRESS=0.0.0.0
+    - DATA_DIRS=/var/transwarp/data
+    - HADOOP_SECURITY_AUTHENTICATION=simple
+    - KRB_ENABLE=false
+  volumes:
+    - .:/external
+
+resourcemanager:
+  image: 172.16.1.41:5000/jenkins/yarn:latest
+  command: bootstrap.sh resourcemanager
+  privileged: true
+  hostname: resourcemanager.test.transwarp.local
+  dns: skydns
+  dns_search: test.transwarp.local
+  volumes:
+    - /tmp/sockerdir:/var/run/hadoop-common
+  environment:
+    - SKYDNS_PATH=http://etcd:4001/v2/keys/skydns
+    - HDFS_HA_NAMENODE_SERVICE=namenode
+    - HDFS_NAMENODE_STATUS_URL=namenode:50070/startupProgress
+    - YARN_RESOURCEMANAGER_ADDRRESS=0.0.0.0
+    - DATA_DIRS=/var/transwarp/data
+    - HADOOP_SECURITY_AUTHENTICATION=simple
+    - KRB_ENABLE=false
+  volumes:
+    - .:/external

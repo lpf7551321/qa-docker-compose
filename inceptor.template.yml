@@ -1,0 +1,108 @@
+inceptorExecutor:
+  image: 172.16.1.41:5000/jenkins/inceptor:latest
+  command: bootstrap.sh inceptor-executor
+  privileged: true
+  hostname: inceptorexecutor.test.transwarp.local
+  dns: skydns
+  dns_search: test.transwarp.local
+  volumes:
+    - /tmp/sockerdir:/var/run/hadoop-common
+  environment:
+    - SKYDNS_PATH=http://etcd:4001/v2/keys/skydns
+    - HDFS_HA_NAMENODE_SERVICE=namenode
+    - TRANSWARP_ZOOKEEPER_QUORUM=zookeeper
+    - HREGION_INDEX_PATH=hdfs://service/user/hbase/hyperbase1_hregionindex
+    - HBASE_ROOTDIR=hdfs://service/user/hbase/hyperbase1
+    - HBASE_ZOOKEEPER_ZNODE_PARENT=/hyperbase1
+    - MYSQL_SERVER=mysql
+    - JAVAX_JDO_OPTION_CONNECTION_USERNAME=hiveuser
+    - JAVAX_JDO_OPTION_CONNECTION_PASSWORD=passwd
+    - HIVE_EXEC_SCRATCHDIR=hdfs://service/user/hive/inceptor1/tmp/hive
+    - HIVE_METASTORE_WAREHOUSE_DIR=hdfs://service/user/hive/inceptor1/user/hive/warehouse
+    - HIVE_METASTORE_SERVER=metastore
+    - INCEPTOR_SERVER=inceptor.test.transwarp.local
+    - SPARK_MEM=10240m
+    - SPARK_CORES=10
+    - SPARK_DRIVER_PORT=51888
+    - EXECUTOR_ID_PATH=/inceptor-on-kubernete/executorID
+    - HADOOP_SECURITY_AUTHENTICATION=simple
+    - HIVE_SERVER2_AUTHENTICATION=NONE
+    - HIVE_SECURITY_AUTHENTICATOR_MANAGER=org.apache.hadoop.hive.ql.security.HadoopDefaultAuthenticator
+    - KRB_ENABLE=false
+  volumes:
+    - .:/external
+
+inceptor:
+  image: 172.16.1.41:5000/jenkins/inceptor:latest
+  command: bootstrap.sh inceptor
+  privileged: true
+  hostname: inceptor.test.transwarp.local
+  dns: skydns
+  dns_search: test.transwarp.local
+  volumes:
+    - /tmp/sockerdir:/var/run/hadoop-common
+  environment:
+    - SKYDNS_PATH=http://etcd:4001/v2/keys/skydns
+    - HDFS_HA_NAMENODE_SERVICE=namenode
+    - TRANSWARP_ZOOKEEPER_QUORUM=zookeeper
+    - HDFS_NAMENODE_SERVER=namenode
+    - HREGION_INDEX_PATH=hdfs://service/user/hive/hyperbase1_hregionindex
+    - HBASE_ROOTDIR=hdfs://service/user/hive/hyperbase1
+    - HBASE_ZOOKEEPER_ZNODE_PARENT=/hyperbase1
+    - MYSQL_SERVER=mysql
+    - JAVAX_JDO_OPTION_CONNECTION_USERNAME=hiveuser
+    - JAVAX_JDO_OPTION_CONNECTION_PASSWORD=passwd
+    - HBASE_MASTER_STATUS=http://hbasemaster:60010/jmx
+    - HIVE_EXEC_SCRATCHDIR=hdfs://service/user/hive/inceptor1/tmp/hive
+    - HIVE_METASTORE_WAREHOUSE_DIR=hdfs://service/user/hive/inceptor1/user/hive/warehouse
+    - HIVE_METASTORE_SERVER=metastore
+    - SPARK_DRIVER_PORT=51888
+    - EXECUTOR_ID_PATH=/inceptor-on-kubernete/executorID
+    - HADOOP_SECURITY_AUTHENTICATION=simple
+    - HIVE_SERVER2_AUTHENTICATION=NONE
+    - HIVE_SECURITY_AUTHENTICATOR_MANAGER=org.apache.hadoop.hive.ql.security.HadoopDefaultAuthenticator
+    - KRB_ENABLE=false
+  volumes:
+    - .:/external
+
+metastore:
+  image: 172.16.1.41:5000/jenkins/inceptor:latest
+  command: bootstrap.sh metastore
+  privileged: true
+  hostname: metastore.test.transwarp.local
+  dns: skydns
+  dns_search: test.transwarp.local
+  environment:
+    - SKYDNS_PATH=http://etcd:4001/v2/keys/skydns
+    - HDFS_HA_NAMENODE_SERVICE=namenode
+    - NAMENODE_STATUS=namenode:50070/startupProgress
+    - TRANSWARP_ZOOKEEPER_QUORUM=zookeeper
+    - HBASE_ROOTDIR=hdfs://service/user/hbase/hyperbase1
+    - HIVE_EXEC_SCRATCHDIR=hdfs://service/user/hive/inceptor1/tmp/hive
+    - HIVE_METASTORE_WAREHOUSE_DIR=hdfs://service/user/hive/inceptor1/user/hive/warehouse
+    - MYSQL_SERVER=mysql
+    - METASTORE_ID=metastore_inceptor1
+    - JAVAX_JDO_OPTION_CONNECTION_USERNAME=hiveuser
+    - JAVAX_JDO_OPTION_CONNECTION_PASSWORD=passwd
+    - HADOOP_SECURITY_AUTHENTICATION=simple
+    - HIVE_SERVER2_AUTHENTICATION=NONE
+    - HIVE_SECURITY_AUTHENTICATOR_MANAGER=org.apache.hadoop.hive.ql.security.HadoopDefaultAuthenticator
+    - KRB_ENABLE=false
+  volumes:
+    - .:/external
+
+mysql:
+  image: 172.16.1.41:5000/jenkins/inceptor:latest
+  command: bootstrap.sh mysql
+  privileged: true
+  hostname: mysql.test.transwarp.local
+  dns: skydns
+  dns_search: test.transwarp.local
+  environment:
+    - SKYDNS_PATH=http://etcd:4001/v2/keys/skydns
+    - JAVAX_JDO_OPTION_CONNECTION_USERNAME=hiveuser
+    - JAVAX_JDO_OPTION_CONNECTION_PASSWORD=passwd
+    - METASTORE_ID=metastore_inceptor1
+    - KRB_ENABLE=false
+  volumes:
+    - .:/external

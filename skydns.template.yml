@@ -1,0 +1,12 @@
+skydns:
+  image: 172.16.1.41:5000/skydns:20150703-113305 
+  privileged: true
+  command: bootstrap.sh
+  environment:
+    - ETCD_MACHINES=http://etcd:4001
+    - INIT_SKYDNS_CONFIG=1
+
+etcd:
+  image: 172.16.1.41:5000/etcd:20150703-01 
+  privileged: true
+  command: bootstrap.sh

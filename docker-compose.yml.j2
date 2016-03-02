@@ -1,0 +1,202 @@
+inceptorExecutor:
+  image: {{INCEPTOR_IMG}}
+  extends:
+    file: inceptor.template.yml
+    service: inceptorExecutor
+  links:
+    - skydns
+    - etcd
+  {% if KERBEROS == "true" %}
+  environment:
+    - KRB_ENABLE=true
+    - HADOOP_SECURITY_AUTHENTICATION=kerberos
+    - HIVE_SERVER2_AUTHENTICATION=KERBEROS
+    - HIVE_SECURITY_AUTHENTICATOR_MANAGER=org.apache.hadoop.hive.ql.security.SessionStateUserAuthenticator
+    - KRB_ADMIN_SERVER=kerberos
+  {% endif %}
+
+inceptor:
+  image: {{INCEPTOR_IMG}}
+  extends:
+    file: inceptor.template.yml
+    service: inceptor
+  links:
+    - skydns
+    - etcd
+  {% if KERBEROS %}
+  environment:
+    - KRB_ENABLE=true
+    - HADOOP_SECURITY_AUTHENTICATION=kerberos
+    - HIVE_SERVER2=true
+    - HIVE_SERVER2_AUTHENTICATION=KERBEROS
+    - HIVE_SECURITY_AUTHENTICATOR_MANAGER=org.apache.hadoop.hive.ql.security.SessionStateUserAuthenticator
+    - KRB_ADMIN_SERVER=kerberos
+  {% endif %}
+
+metastore:
+  image: {{INCEPTOR_IMG}}
+  extends:
+    file: inceptor.template.yml
+    service: metastore
+  links:
+    - skydns
+    - etcd
+  {% if KERBEROS %}
+  environment:
+    - KRB_ENABLE=true
+    - HADOOP_SECURITY_AUTHENTICATION=kerberos
+    - HIVE_SERVER2_AUTHENTICATION=KERBEROS
+    - HIVE_SECURITY_AUTHENTICATOR_MANAGER=org.apache.hadoop.hive.ql.security.SessionStateUserAuthenticator
+    - KRB_ADMIN_SERVER=kerberos
+  {% endif %}
+
+mysql:
+  image: {{MYSQL_IMG}}
+  extends:
+    file: inceptor.template.yml
+    service: mysql
+  links:
+    - skydns
+    - etcd
+  {% if KERBEROS %}
+  environment:
+    - KRB_ENABLE=true
+    - KRB_ADMIN_SERVER=kerberos
+  {% endif %}
+
+hbaseregionserver:
+  image: {{HBASE_IMG}}
+  extends:
+    file: hbase.template.yml
+    service: hbaseregionserver
+  links:
+    - skydns
+    - etcd
+  {% if KERBEROS %}
+  environment:
+    - KRB_ENABLE=true
+    - HADOOP_SECURITY_AUTHENTICATION=kerberos
+    - KRB_ADMIN_SERVER=kerberos
+  {% endif %}
+
+hbasemaster:
+  image: {{HBASE_IMG}}
+  extends:
+    file: hbase.template.yml
+    service: hbasemaster
+  links:
+    - skydns
+    - etcd
+  {% if KERBEROS %}
+  environment:
+    - KRB_ENABLE=true
+    - HADOOP_SECURITY_AUTHENTICATION=kerberos
+    - KRB_ADMIN_SERVER=kerberos
+  {% endif %}
+
+nodemanager:
+  image: {{YARN_IMG}}
+  extends:
+    file: yarn.template.yml
+    service: nodemanager
+  links:
+    - skydns
+    - etcd
+  {% if KERBEROS %}
+  environment:
+    - KRB_ENABLE=true
+    - HADOOP_SECURITY_AUTHENTICATION=kerberos
+    - KRB_ADMIN_SERVER=kerberos
+  {% endif %}
+
+resourcemanager:
+  image: {{YARN_IMG}}
+  extends:
+    file: yarn.template.yml
+    service: resourcemanager
+  links:
+    - skydns
+    - etcd
+  {% if KERBEROS %}
+  environment:
+    - KRB_ENABLE=true
+    - HADOOP_SECURITY_AUTHENTICATION=kerberos
+    - KRB_ADMIN_SERVER=kerberos
+  {% endif %}
+
+datanode:
+  image: {{HADOOP_IMG}}
+  extends:
+    file: hdfs.template.yml
+    service: datanode
+  links:
+    - skydns
+    - etcd
+  {% if KERBEROS %}
+  environment:
+    - KRB_ENABLE=true
+    - HADOOP_SECURITY_AUTHENTICATION=kerberos
+    - KRB_ADMIN_SERVER=kerberos
+  {% endif %}
+
+namenode:
+  image: {{HADOOP_IMG}}
+  extends:
+    file: hdfs.template.yml
+    service: namenode
+  links:
+    - skydns
+    - etcd
+  {% if KERBEROS %}
+  environment:
+    - KRB_ENABLE=true
+    - HADOOP_SECURITY_AUTHENTICATION=kerberos
+    - KRB_ADMIN_SERVER=kerberos
+  {% endif %}
+
+zookeeper:
+  image: {{ZOOKEEPER_IMG}}
+  extends:
+    file: hdfs.template.yml
+    service: zookeeper
+  links:
+    - skydns
+    - etcd
+  {% if KERBEROS %}
+  environment:
+    - KRB_ENABLE=true
+    - KRB_ADMIN_SERVER=kerberos
+  {% endif %}
+
+{% if KERBEROS %}
+kerberos:
+  image: 172.16.1.41:5000/jenkins/kerberos:testing-latest
+  links:
+    - skydns
+    - etcd
+  hostname: kerberos.test.transwarp.local
+  dns: skydns
+  dns_search: test.transwarp.local
+  environment:
+    - SKYDNS_PATH=http://etcd:4001/v2/keys/skydns
+    - KRB_PASSWD=123456
+    - KRB_REALM=TDH
+    - KRB_ADMIN_SERVER=kerberos
+  command: bootstrap.sh
+  volumes:
+    - .:/external
+{% endif %}
+
+skydns:
+  image: {{SKYDNS_IMG}}
+  extends:
+    file: skydns.template.yml
+    service: skydns
+  links:
+    - etcd
+
+etcd:
+  image: {{ETCD_IMG}}
+  extends:
+    file: skydns.template.yml
+    service: etcd

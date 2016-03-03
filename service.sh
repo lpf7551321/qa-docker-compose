@@ -1,5 +1,18 @@
 #!/bin/bash
 
+readlink_f () {
+  cd "$(dirname "$1")" > /dev/null
+  filename="$(basename "$1")"
+  if [ -h "$filename" ]; then
+    readlink_f "$(readlink "$filename")"
+  else
+    echo "`pwd -P`/$filename"
+  fi
+}
+
+SELF=$(readlink_f "$0")
+SCRIPT_PATH=$(dirname "$SELF")
+
 I=1
 
 CONFIG="trunk.config"
@@ -23,6 +36,6 @@ while [ $I -le $# ]; do
 done
 
 
-./j2.py --config $CONFIG docker-compose.yml.j2
+cd $SCRIPT_PATH; ./j2.py --config $CONFIG docker-compose.yml.j2
 
 docker-compose -f docker-compose.yml $RES_ARGS

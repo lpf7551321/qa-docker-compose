@@ -170,21 +170,13 @@ zookeeper:
 
 {% if KERBEROS %}
 kerberos:
-  image: 172.16.1.41:5000/jenkins/kerberos:testing-latest
+  image: {{KERBEROS_IMG}}
+  extends:
+    file: kerberos.template.yml
+    service: kerberos 
   links:
     - skydns
     - etcd
-  hostname: kerberos.test.transwarp.local
-  dns: skydns
-  dns_search: test.transwarp.local
-  environment:
-    - SKYDNS_PATH=http://etcd:4001/v2/keys/skydns
-    - KRB_PASSWD=123456
-    - KRB_REALM=TDH
-    - KRB_ADMIN_SERVER=kerberos
-  command: bootstrap.sh
-  volumes:
-    - .:/external
 {% endif %}
 
 skydns:

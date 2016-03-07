@@ -87,7 +87,7 @@ repeat_until_ready "sudo -u hbase timeout -s SIGKILL 30 hbase shell $tmp_file" "
 HIVE_SERVER=${HIVE_SERVER:-inceptor}
 
 cd $1
-java -cp /external/player-1.0-all.jar io.transwarp.qa.player.SuiteRunner \
+java -cp /external/bin/player-1.0-all.jar io.transwarp.qa.player.SuiteRunner \
       ${PLAYER_OPTS}
 
 [ -z "${DEBUG}" ] || {

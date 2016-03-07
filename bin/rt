@@ -1,0 +1,40 @@
+#!/bin/sh
+
+CLASS_PATH=""
+
+I=1
+
+RT_ARGS=""
+
+while [ $I -le $# ]; do
+  S=1
+  eval "PEEK=\${$I}"
+  case "$PEEK" in
+    -cp)
+        I=$(expr $I + 1)
+        eval "VAL=\${$I}"
+        CLASS_PATH=":$VAL"
+        ;;
+    *)
+        RT_ARGS="$RT_ARGS $PEEK"
+        ;;
+  esac
+  I=$(expr $I + $S)
+done
+
+readlink_f () {
+  cd "$(dirname "$1")" > /dev/null
+  filename="$(basename "$1")"
+  if [ -h "$filename" ]; then
+    readlink_f "$(readlink "$filename")"
+  else
+    echo "`pwd -P`/$filename"
+  fi
+}
+
+SELF=$(readlink_f "$0")
+SCRIPT_PATH=$(dirname "$SELF")
+
+#echo java -cp "$SCRIPT_PATH/rt-all-1.0.jar$CLASS_PATH" rt $RT_ARGS
+export RT_PRELOAD="$SCRIPT_PATH/../lib/std.rt":$RT_PRELOAD
+exec java -XX:-UseSplitVerifier -cp "$SCRIPT_PATH/rt-all-1.0.jar$CLASS_PATH" rt $RT_ARGS

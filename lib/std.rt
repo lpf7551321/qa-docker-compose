@@ -1,0 +1,217 @@
+
+module('std') {
+
+    action('build') {
+        once_per('build') {
+        }
+    }
+
+    action('execute_ddl') {
+    }
+
+    action('execute_dml') {
+    }
+
+    action('execute_sql') {
+    }
+
+    action('execute') {
+        execute_ddl()
+        execute_dml()
+        execute_sql()
+    }
+
+    action('diff') { src, dst ->
+        cmd("diff ${src} ${dst}")
+    }
+
+    action('check') {
+    }
+
+    action('report') {
+    }
+
+    action('run') {
+
+        try{
+            build()
+            execute()
+            check()
+            report()
+        } catch(e) {
+            this_test.report_msg += e.toString()
+            throw e
+        }
+
+    }
+
+}
+
+module('std_UT') {
+
+    include('std')
+
+    use_hive2 = false
+    hive_user = 'hive'
+    hostname = 'localhost'
+
+    ddl_filelist = []
+    action('execute_ddl') {
+        if(ddl_filelist.size() > 0) {
+
+            def exec = {hive ->
+                dll_filelist.each {
+                    logger().info("execute ddl file ${it}")
+                    hive.readSQLFile(it) >> hive.execute()
+                }
+            }
+
+            if(use_hive2) {
+                withHive2() { hive ->
+                    exec(hive)
+                }
+            } else {
+                withHive() { hive ->
+                    exec(hive)
+                }
+            }
+        }
+    }
+
+    dml_filelist = []
+    action('execute_dml') {
+        if(dml_filelist.size() > 0) {
+            def exec = {hive ->
+                dml_filelist.each {
+                    logger().info("execute dml file ${it}")
+                    hive.readSQLFile(it) >> hive.execute()
+                }
+            }
+            if(use_hive2) {
+                withHive2() { hive ->
+                    exec(hive)
+                }
+            } else {
+                withHive() { hive ->
+                    exec(hive)
+                }
+            }
+        }
+    }
+
+    sql_filelist = []
+    verify_sql = true
+    action('execute_sql') {
+        if(sql_filelist.size() > 0) {
+            mkdir "out/${this_test}"
+            def exec = {hive ->
+                sql_filelist.each {
+                    logger().info("execute sql file ${it}")
+                    hive.readSQLFile(it) >> hive.executeQuery() >> "out/${this_test}/sql__${new File(it).name}.out"
+                    if(verify_sql) diff("out/${this_test}/sql__${new File(it).name}.out", "ref/${this_test}/sql__${new File(it).name}.ref")
+                }
+            }
+            if(use_hive2) {
+                withHive2() { hive ->
+                    exec(hive)
+                }
+            } else {
+                withHive() { hive ->
+                    exec(hive)
+                }
+            }
+        }
+    }
+
+}
+
+module('playerActions') {
+
+    action('hdfs') {args=[:], data=[:], conf=null->
+        logger().info(args)
+        withHdfs() { fs ->
+            if(args['operation'] == 'put') {
+                data.each { d, v->
+                    fs.putData(d, v, args['dst'])
+                }
+            }
+            //if(args['operation'] == 'get') {
+            //}
+        }
+    }
+
+    action('shell') {args=[:], data=[:], conf=null->
+        logger().info(args)
+        if(args['cmd']) {
+            cmd("${args['cmd']}")
+        }
+        if(args['shell_src']) {
+            args['shell_src'].split(',').each {
+                def f = new File(it.trim())
+                if(f.isDirectory()) {
+                    f.eachFile {
+                        cmd("bash ${it.trim()}")
+                    }
+                } else cmd("bash ${it.trim()}")
+            }
+        }
+    }
+
+    action('sql') {args=[:], data=[:], conf=null->
+        logger().info(args)
+        Boolean use_hive2 = true
+        if(args['use_hive2'] == 'false') use_hive2 = false
+        def exec = { hive ->
+            if(args['mode'] == 'local') {
+                hive.execute('set ngmr.exec.mode=local')
+            }
+            if(args['src']) {
+                args['src'].split(',').each {
+                    def f = new File(it.trim())
+                    if(f.isDirectory()) {
+                        f.eachFile {
+                            hive.readSQLFile(it.trim()) >> hive.execute()
+                        }
+                    } else {
+                        hive.readSQLFile(it.trim()) >> hive.execute()
+                    }
+                }
+            }
+        }
+        if(use_hive2) {
+            withHive2() {exec(it)}
+        } else {
+            withHive() {exec(it)}
+        }
+    }
+
+    action('hbase') {args=[:], data=[:], conf=null->
+        logger().info(args)
+        if(args['hbase_src']) {
+            withHbase() { hbase->
+                args['hbase_src'].split(',').each {
+                    if(new File(it).isDirectory()) {
+                        new File(it).eachFile {f->hbase.executeFile(f)}
+                    } else hbase.executeFile(it)
+                }
+            }
+        }
+    }
+
+    action('zookeeper') {args=[:], data=[:], conf=null->
+        logger().info(args)
+    }
+
+    action('java') {args=[:], data=[:], conf=null->
+        logger().info(args)
+    }
+
+    action('sqoop2') {args=[:], data=[:], conf=null->
+        logger().info(args)
+    }
+
+    action('sqoop') {args=[:], data=[:], conf=null->
+        logger().info(args)
+    }
+
+}
